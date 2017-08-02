@@ -4,8 +4,8 @@
 # disk and get db information from PW configuration file.
 
 #For backup only scenario, datadir and target dir should be the same.
-snum=1
-inum=1
+snum=$1
+inum=$1
 
 xtrabackup=`which xtrabackup` >> /dev/null
 xmysql=`which mysql` >> /dev/null
