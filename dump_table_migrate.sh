@@ -1,12 +1,16 @@
 #!/bin/bash
 
+#2 parameter
+#1st: source instance number
+#2: translation file
+
 proc_table() {
 
 #db instance
 mysql="/data/app/bimax/flow.sh run db${1}_ mysql pw$1 -N -s -A"
 
 #use run here might cause mysqldump exit after dumping the first tale
-mysqldump="/data/app/bimax/flow.sh run db${1}_ mysqldump --result-file=/app/archive_dump.sql pw$1"
+mysqldump="/data/app/bimax/flow.sh run db${1}_ mysqldump --result-file=/app/archive_dump_${3}.sql pw$1"
 
 tmp=`mktemp`
 tmp_dump=`mktemp`
@@ -48,5 +52,6 @@ tran=$2
 proc_table $@ numeric
 proc_table $@ blob
 
-mv /data/bimax/pw${1}/db/app/archive_dump.sql $PWD/pw${1}_archive_dump.sql
+mv /data/bimax/pw${1}/db/app/archive_dump_blob.sql $PWD/pw${1}_archive_dump_blob.sql
+mv /data/bimax/pw${1}/db/app/archive_dump_numeric.sql $PWD/pw${1}_archive_dump_numeric.sql
 
