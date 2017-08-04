@@ -5,19 +5,19 @@ ids="`docker ps | awk '/bimax_pw/ {l=$NF;sub(/^bimax_pw/,"",l);sub(/_.*$/,"",l);
 log=/var/log/backup_pw_db.log
 
 for id in $ids;do
-	bk_dir=/data/bimax/pw$id/db/backup/
-	if [ -d /data/backup/pw$id ]; then
-		mv /data/backup/pw$id /data/backup/_pw$id
+	bk_dir=/data/bimax/pw$id/db/backup
+	if [ -d $bk_dir ]; then
+		mv $bk_dir ${bk_dir}__
 	fi
-	$PWD/backup_host.sh $id >> $log
+	sh /root/bimax_ha_migration/backup_host.sh $id >> $log
 	if [ ! -z $?  ]; then
 		#just to make sure, if backup_host success the dir should be there
-		if [ -d /data/backup/pw$id ]; then
-                	rm -rf /data/backup/_pw$id
-			rsync -avz -e 'ssh -p 10022' --progress $bk_dir root@172.16.64.180:/data/backup/pw$id
+		if [ -d $bk_dir ]; then
+                	rm -rf ${bk_dir}__
+			rsync -avz -e 'ssh -p 10022' --progress $bk_dir/ root@172.16.64.180:/data/backup/pw$id
 			echo "`date +"%Y-%m-%d %H:%M:%S"`: backup success for $id " >> $log
         	else
-			mv /data/backup/_pw$id /data/backup/pw$id
+			mv ${bk_dir}__ ${bk_dir}
 			echo "`date +"%Y-%m-%d %H:%M:%S"`: backup failed for $id, returned the backup folder." >> $log
 		fi
 	fi
