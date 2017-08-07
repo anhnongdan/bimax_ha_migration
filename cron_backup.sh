@@ -15,7 +15,7 @@ for id in $ids;do
 		if [ -d $bk_dir ]; then
                 	rm -rf ${bk_dir}__
 			#rsync -avzh -e 'ssh -i /root/.ssh/id_rsa.pub' --progress $bk_dir/ root@172.20.4.64:/data/backup/pw$id >> $log
-			usr/bin/rsync -avzh -e '/usr/bin/ssh -p 22' --progress $bk_dir/ root@172.20.4.64:/data/backup/pw$id
+			/usr/bin/rsync -avzh -e '/usr/bin/ssh -p 22' $bk_dir/ root@172.20.4.64:/data/backup/pw$id >> $log 2>&1
 			echo "`date +"%Y-%m-%d %H:%M:%S"`: backup success for $id " >> $log
         	else
 			mv ${bk_dir}__ ${bk_dir}
