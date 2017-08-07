@@ -41,8 +41,8 @@ if [ $free -lt $backup ]; then
 	exit 2
 else
 	#check free disk space of root dir
-	hfree=`df --output='avail' / | grep -v 'Avai'`
-	hbk=`du $datadir | awk '{print $1}'`
+	hfree=`df -h --output='avail' / | grep -v 'Avai'`
+	hbk=`du -sh $datadir | awk '{print $1}'`
 	echo "OK, backup size est: $hbk and $hfree of disk is available"
 	#check time and make full backup
 	bktime=`date +"%Y-%m-%d %H:%M:%S"`

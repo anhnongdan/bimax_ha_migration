@@ -14,7 +14,7 @@ for id in $ids;do
 		#just to make sure, if backup_host success the dir should be there
 		if [ -d $bk_dir ]; then
                 	rm -rf ${bk_dir}__
-			rsync -avz -e 'ssh -p 10022' --progress $bk_dir/ root@172.16.64.180:/data/backup/pw$id
+			rsync -avzh -e 'ssh -i /root/.ssh/id_rsa.pub' --progress $bk_dir/ root@172.20.4.64:/data/backup/pw$id >> $log
 			echo "`date +"%Y-%m-%d %H:%M:%S"`: backup success for $id " >> $log
         	else
 			mv ${bk_dir}__ ${bk_dir}
