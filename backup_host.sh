@@ -37,6 +37,7 @@ free=`df | grep -w "/" | grep -v "/mnt/data/" | awk '{print $4}'`
 backup=`du -s "$datadir" | awk '{print $1}'`
 
 if [ $free -lt $backup ]; then
+#if [ $free = 0 ]; then
 	echo "not enought space for backup"
 	exit 2
 else
