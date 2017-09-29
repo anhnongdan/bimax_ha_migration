@@ -57,7 +57,8 @@ else
 	port=`awk -F'=' '/port =/ {print $2}' $conf | grep 300 | tr -d \'\"`
 
 	#opt_exclude="^pw\d[.]\w+_archive_(blob|numeric)_temp_\w+"
-	opt_exclude="(_archive_(blob|numeric)_temp_|_log_link_visit_action_2)"
+	#opt_exclude="(_archive_(blob|numeric)_temp_|_log_link_visit_action_2)"
+	opt_exclude="(_log_link_visit_action_2)"
 	#datadir path is the directory on romote server while target-dir is dir on this bk server 
 	#so both target-dir and data-dir need to be the dirs on local host (or specify as host/path/file or smt
 	$xtrabackup --tables-exclude=$opt_exclude --innodb-log-file-size=50331648 --backup -H $host -P $port -u $user -p $pass --datadir=$datadir --target-dir=$target 
