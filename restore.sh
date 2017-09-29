@@ -9,13 +9,14 @@ xtrabackup=`which xtrabackup` >> /dev/null
 
 # need to map backup folder to docker db
 datadir=/data/bimax/pw$snum/db/data
+cnf=/data/bimax/pw$snum/db/app/my.cnf.orig
 
 #target actually is the source 
 target=/data/backup/pw$inum
 #datadir=/var/lib/mysql
 log=/data/bimax/pw$inum/db/log/restore.log
 
-conf=/data/bimax/pw$snum/www/src/config/config.ini.php
+#conf=/data/bimax/pw$snum/www/src/config/config.ini.php
 
 echo "`date +"%Y-%m-%d %H:%M:%S"` Restore starting..." >> $log
 
@@ -39,17 +40,20 @@ if [ $free -lt $backup ]; then
 fi
 
 #Prepare backup only before restoring, will be more complex with incremental backup
-$xtrabackup --prepare --target-dir=$target >> $log
+$xtrabackup --defaults-file=$cnf --prepare --target-dir=$target >> $log
 
-if [ ! -z $?  ]; then
+if [ $? -eq 0 ]; then
 	did=`docker ps |grep db${inum}_ | head -1 | awk '{print $1}'`
 	## check archive??
 	# check mysql
-	DbP=`docker ps | grep db${inum}_ | awk -F" " '{print $7}'`
-	if [ "$DbP" = 'Up' ]; then
+	DbP=`docker ps | grep db${inum}_ | wc -l`
+	if [ $DbP -gt 0 ]; then
 		#will not use mysql stop for docker, stop the container instead
 		#echo "service mysql stop"
-		docker stop $did
+		#docker stop $did
+		
+		#take down everything
+		docker-compose -f /data/app/bimax/pw_${inum}.yml down
 	fi
 	
 	#don't know why "rm -rf $datadir/*" doesn't work here, still left smt in the folder... 
@@ -61,8 +65,8 @@ if [ ! -z $?  ]; then
 	$xtrabackup --copy-back --datadir=$datadir --target-dir=$target >> $log 
 	chown -R 106:108 $datadir/*
 
-	if [ "$DbP" = 'Up' ]; then
-		docker start $did
+	if [ $DbP -gt 0 ]; then
+		docker-compose -f /data/app/bimax/pw_${inum}.yml up -d
 	fi
 else
 	echo "Prepare backup failed" >> $log
@@ -70,9 +74,4 @@ else
 fi
 
 echo "`date +"%Y-%m-%d %H:%M:%S"` Restore end...." >> $log
-
-
-
-
-
 
