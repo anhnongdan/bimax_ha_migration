@@ -1,0 +1,34 @@
+#!/bin/sh
+
+MYDIR="$(dirname "$(realpath "$0")")"
+conf=$MYDIR/ha.conf
+log=`awk -F'=' '/log=/ {print $2}' $conf | head -1`
+master=`awk -F'=' '/master_extractor=/ {print $2}' $conf | head -1`
+extr_dir=`awk -F'=' '/extr_dir=/ {print $2}' $conf | head -1`
+master_extr_dir=`awk -F'=' '/master_extr_dir=/ {print $2}' $conf | head -1`
+
+start_extractors() {
+		extractors=`ls ${extr_dir}/test1 | grep extract_40`
+		for extr in $extractors; do
+			echo "pm2 start $extr" >> $log
+		done
+}
+
+
+#sync config and extractor scripts between master and slave, this is important
+#what if master down?
+/usr/bin/rsync -avzh -e '/usr/bin/ssh -p 22' root@$master:$master_extr_dir/ $extr_dir/test1 --delete
+
+if [ $? -eq 0 ]; then
+	pm2s=`ssh -t root@$master "pm2 l | grep extract_40" | wc -l `
+	if [ $pm2s -lt 1 ]; then
+		start_extractors
+	else
+		echo "it seems master extractor is running, not sure about details"
+	fi			 
+else
+	echo "master down"
+	start_extractors
+fi
+
+
