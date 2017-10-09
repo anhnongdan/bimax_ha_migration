@@ -3,6 +3,11 @@
 # This should run on the host, not the docker instance as it need to check 
 # disk and get db information from PW configuration file.
 
+MYDIR="$(dirname "$(realpath "$0")")"
+conf=$MYDIR/backup.conf
+lc_dir=`awk -F'=' '/local_backup=/ {print $2}' $conf | head -1`
+
+
 #For backup only scenario, datadir and target dir should be the same.
 snum=$1
 inum=$1
@@ -11,11 +16,11 @@ xtrabackup=`which xtrabackup` >> /dev/null
 xmysql=`which mysql` >> /dev/null
 
 # need to map backup folder to docker db
-target=/data/bimax/pw$inum/db/backup #match this to whatever
+target=$lc_dir/pw$inum/ #match this to whatever
 datadir=/data/bimax/pw$snum/db/data
 #datadir=/var/lib/mysql
 
-conf=/data/bimax/pw$snum/www/src/config/config.ini.php
+pw_conf=/data/bimax/pw$snum/www/src/config/config.ini.php
 
 if [ ! -z "$xmysql" -a "$xmysql" != "" ]; then
 	echo "mysql is installed in the host"
@@ -32,7 +37,7 @@ fi
 xtrabackup=`which xtrabackup` >> /dev/null
 
 ##check disk available volume
-free=`df | grep -w "/" | grep -v "/mnt/data/" | awk '{print $4}'`
+free=`df | grep "/data" | awk '{print $4}'`
 # check datadir size, for full backup only
 backup=`du -s "$datadir" | awk '{print $1}'`
 
@@ -51,10 +56,10 @@ else
 	#echo "$xtrabackup --backup --target-dir=$target"
 	#echo "mysql -h 127.0.0.1 --db-port= -u  -p 
 
-	user=`awk -F'=' '/username =/ {print $2}' $conf | tr -d \'\"`
-	host=`awk -F'=' '/host =/ {print $2}' $conf | tr -d \'\"`
-	pass=`awk -F'=' '/password =/ {print $2}' $conf | tr -d \'\"`
-	port=`awk -F'=' '/port =/ {print $2}' $conf | grep 300 | tr -d \'\"`
+	user=`awk -F'=' '/username =/ {print $2}' $pw_conf | tr -d \'\"`
+	host=`awk -F'=' '/host =/ {print $2}' $pw_conf | tr -d \'\"`
+	pass=`awk -F'=' '/password =/ {print $2}' $pw_conf | tr -d \'\"`
+	port=`awk -F'=' '/port =/ {print $2}' $pw_conf | grep 300 | tr -d \'\"`
 
 	#opt_exclude="^pw\d[.]\w+_archive_(blob|numeric)_temp_\w+"
 	#opt_exclude="(_archive_(blob|numeric)_temp_|_log_link_visit_action_2)"

@@ -1,9 +1,14 @@
 #!/bin/sh
+MYDIR="$(dirname "$(realpath "$0")")"
+conf=$MYDIR/backup.conf
+log=`awk -F'=' '/log=/ {print $2}' $conf | head -1`
+host=`awk -F'=' '/backup_host=/ {print $2}' $conf | head -1`
+bk_dir=`awk -F'=' '/backup_dir=/ {print $2}' $conf | head -1`
+exclude=`awk -F'=' '/exclude=/ {print $2}' $conf | head -1`
+lc_dir=`awk -F'=' '/local_backup=/ {print $2}' $conf | head -1`
 
 #get docker id
 ids="`docker ps | awk '/bimax_pw/ {l=$NF;sub(/^bimax_pw/,"",l);sub(/_.*$/,"",l);print(l)}'`"
-log=/var/log/backup_pw_db.log
-exclude=/data/app/bimax/exclude_host
 if [ -f $exclude ]; then excludes=`cat $exclude`; fi
 
 for id in $ids;do
@@ -13,21 +18,21 @@ for id in $ids;do
                         continue
         fi
 
-	bk_dir=/data/bimax/pw$id/db/backup
+	local_bk_dir=$lc_dir/pw$id
 	
-	if [ -d $bk_dir ]; then
-		mv $bk_dir ${bk_dir}__
+	if [ -d $local_bk_dir ]; then
+		mv $local_bk_dir ${local_bk_dir}__
 	fi
-	sh /root/bimax_ha_migration/backup_host.sh $id >> $log
+	sh $MYDIR/backup_host.sh $id >> $log
 	if [ ! -z $?  ]; then
 		#just to make sure, if backup_host success the dir should be there
-		if [ -d $bk_dir ]; then
-                	rm -rf ${bk_dir}__
+		if [ -d $local_bk_dir ]; then
+                	rm -rf ${local_bk_dir}__
 			#rsync -avzh -e 'ssh -i /root/.ssh/id_rsa.pub' --progress $bk_dir/ root@172.20.4.64:/data/backup/pw$id >> $log
-			/usr/bin/rsync -avzh -e '/usr/bin/ssh -p 22' $bk_dir/ root@172.40.4.91:/data/backup/pw$id >> $log 2>&1
+			/usr/bin/rsync -avzh -e '/usr/bin/ssh -p 22' $local_bk_dir/ root@$host:$bk_dir/pw$id >> $log 2>&1
 			echo "`date +"%Y-%m-%d %H:%M:%S"`: backup success for $id " >> $log
         	else
-			mv ${bk_dir}__ ${bk_dir}
+			mv ${local_bk_dir}__ ${local_bk_dir}
 			echo "`date +"%Y-%m-%d %H:%M:%S"`: backup failed for $id, returned the backup folder." >> $log
 		fi
 	fi
