@@ -13,9 +13,10 @@ csync_setting=`awk -F'=' '/csync_setting=/ {print $2}' $conf | head -1`
 fail_count=`awk -F'=' '/fail_count=/ {print $2}' $conf | head -1`
 
 start_proc() {
-		procs=`ls ${proc_dir} | grep $proc_name | grep -v conf`
+		procs=`ls ${proc_dir} | grep $proc_name | grep -v conf | grep -v .py | grep -v _0`
 		for proc in $procs; do
 			echo "start ${proc_dir}/$proc"  >> $log
+			export PM2_HOME=/root/.pm2
 			#/usr/bin/pm2 start ${proc_dir}/$proc >> $log
 		done
 }

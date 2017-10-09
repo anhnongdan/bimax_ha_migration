@@ -1,0 +1,7 @@
+Premise:
++ Monitors and filters are deployed on the same host with the NFS log disk
+=> No protection for the link between these process and NFS
+
+Tested:
++ tested in the case of master host unreachable -> started job as expected
++ 
