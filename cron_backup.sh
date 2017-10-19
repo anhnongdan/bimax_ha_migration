@@ -3,6 +3,7 @@ MYDIR="$(dirname "$(realpath "$0")")"
 conf=$MYDIR/backup.conf
 log=`awk -F'=' '/log=/ {print $2}' $conf | head -1`
 host=`awk -F'=' '/backup_host=/ {print $2}' $conf | head -1`
+port=`awk -F'=' '/backup_port=/ {print $2}' $conf | head -1`
 bk_dir=`awk -F'=' '/backup_dir=/ {print $2}' $conf | head -1`
 exclude=`awk -F'=' '/exclude=/ {print $2}' $conf | head -1`
 lc_dir=`awk -F'=' '/local_backup=/ {print $2}' $conf | head -1`
@@ -29,7 +30,7 @@ for id in $ids;do
 		if [ -d $local_bk_dir ]; then
                 	rm -rf ${local_bk_dir}__
 			#rsync -avzh -e 'ssh -i /root/.ssh/id_rsa.pub' --progress $bk_dir/ root@172.20.4.64:/data/backup/pw$id >> $log
-			/usr/bin/rsync -avzh -e '/usr/bin/ssh -p 22' $local_bk_dir/ root@$host:$bk_dir/pw$id >> $log 2>&1
+			/usr/bin/rsync -avzh -e "/usr/bin/ssh -p $port" $local_bk_dir/ root@$host:$bk_dir/pw$id >> $log 2>&1
 			echo "`date +"%Y-%m-%d %H:%M:%S"`: backup success for $id " >> $log
         	else
 			mv ${local_bk_dir}__ ${local_bk_dir}
